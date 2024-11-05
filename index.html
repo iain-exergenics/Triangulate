@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Triangulation</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <!-- Logo at the top of the page -->
+    <div class="logo-container">
+        <img src="logo.png" alt="Triangulate Logo" class="logo">
+    </div>
+
+    <h1>Meet me halfway, bitch!</h1>
+    <form id="address-form">
+        <div id="addresses">
+            <input type="text" name="address" placeholder="Enter address 1" required>
+            <input type="text" name="address" placeholder="Enter address 2" required>
+        </div>
+        <button type="button" onclick="addAddress()">Add another address</button>
+        <button type="submit">Find Meeting Point</button>
+    </form>
+    <div id="search-options" style="display: none; margin-top: 10px;">
+        <button onclick="searchNearby('pub')">Pubs</button>
+        <button onclick="searchNearby('cafe')">Cafes</button>
+        <button onclick="searchNearby('restaurant')">Restaurants</button>
+        <button onclick="searchNearby('dog_park')">Dog Parks</button>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
