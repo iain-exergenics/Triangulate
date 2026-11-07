@@ -18,7 +18,7 @@ export const CONFIG = {
   // first and falls back to the public Overpass servers if it's blank or fails.
   // The key is visible in the page by design: restrict it to your site's address under
   // the key's "Allowed origins" in the Geoapify dashboard.
-  geoapifyKey: '',
+  geoapifyKey: '93ca234d6c254fe38f01bd1bb0631e52',
   geoapifyLimit: 80, // places per category per search (every 20 places = 1 credit)
 
   // Free public services (no API keys).
