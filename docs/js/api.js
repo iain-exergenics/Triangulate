@@ -74,8 +74,28 @@ export async function route(profile, from, to, signal) {
   return data.routes?.[0]?.geometry || null;
 }
 
-// Public Overpass servers vary wildly in speed, so race the mirrors and keep the first answer.
 const venueCache = new Map();
+
+// Geoapify Places: OpenStreetMap venues from a fast, keyed service. Returns GeoJSON features
+// nearest-first inside the circle.
+export async function geoapifyPlaces(categories, center, radius, signal) {
+  const ll = `${center.lng.toFixed(5)},${center.lat.toFixed(5)}`;
+  const url = 'https://api.geoapify.com/v2/places?' + new URLSearchParams({
+    categories: categories.join(','),
+    filter: `circle:${ll},${Math.round(radius)}`,
+    bias: `proximity:${ll}`,
+    limit: String(CONFIG.geoapifyLimit),
+    apiKey: CONFIG.geoapifyKey,
+  });
+  if (venueCache.has(url)) return venueCache.get(url);
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Geoapify HTTP ${res.status}`);
+  const json = await res.json();
+  venueCache.set(url, json);
+  return json;
+}
+
+// Public Overpass servers vary wildly in speed, so race the mirrors and keep the first answer.
 export async function overpass(query, signal) {
   if (venueCache.has(query)) return venueCache.get(query);
   const ctrls = CONFIG.overpass.map(() => new AbortController());

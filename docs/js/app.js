@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import * as G from './geo.js';
 import * as API from './api.js';
-import { CATEGORIES, CAT_BY_ID, buildQuery, categoryOf, highlights } from './categories.js';
+import { CATEGORIES, CAT_BY_ID, buildQuery, categoryOf, highlights, fromGeoapify } from './categories.js';
 
 const COLORS = ['#E8505B', '#2E74B5', '#F5A623', '#2BB673', '#8E5CF7', '#00A9C6', '#F06EAA', '#5B6B7A', '#C77C2E', '#3D4CC9'];
 const LETTERS = 'ABCDEFGHIJ';
@@ -563,7 +563,7 @@ async function fetchVenues() {
       '<div class="venue ghost-card"><span class="skeleton" style="width:60%"></span><br><span class="skeleton" style="width:40%;margin-top:6px"></span></div>'.repeat(3);
     slowTimer = setTimeout(() => {
       const p = $('#venues .empty-state');
-      if (p && venueCtrl === ctrl) p.innerHTML = '<span class="spinner" style="display:inline-block;vertical-align:middle"></span>&nbsp; The free venue database is busy — still looking…';
+      if (p && venueCtrl === ctrl) p.innerHTML = '<span class="spinner" style="display:inline-block;vertical-align:middle"></span>&nbsp; Still searching for places nearby…';
     }, 6000);
     ctrl.signal.addEventListener('abort', () => clearTimeout(slowTimer));
   }
@@ -607,6 +607,20 @@ async function fetchVenues() {
 }
 
 async function fetchArea(a, catIds) {
+  if (CONFIG.geoapifyKey) {
+    try {
+      // One request per category, so a dense category (restaurants) can't crowd out the rest.
+      const lists = await Promise.all(catIds.map(async (id) => {
+        const cat = CAT_BY_ID[id];
+        const data = await API.geoapifyPlaces(cat.geo, a.center, a.R);
+        return (data.features || []).map((f) => fromGeoapify(f, cat)).filter(Boolean);
+      }));
+      catIds.forEach((c, i) => a.byCat.set(c, lists[i]));
+      return;
+    } catch (e) {
+      console.warn('Geoapify failed, falling back to Overpass:', e.message);
+    }
+  }
   const data = await API.overpass(buildQuery(catIds, a.center, a.R));
   const fresh = new Map(catIds.map((c) => [c, []]));
   for (const el of data.elements || []) {

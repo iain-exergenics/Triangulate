@@ -14,6 +14,13 @@ export const CONFIG = {
   // Appended to outbound booking links so venues can see Triangulate sent the booking.
   utm: 'utm_source=triangulate&utm_medium=referral&utm_campaign=venue_booking',
 
+  // Geoapify Places API key (free plan: 3,000 credits/day, no card). Venue search uses it
+  // first and falls back to the public Overpass servers if it's blank or fails.
+  // The key is visible in the page by design: restrict it to your site's address under
+  // the key's "Allowed origins" in the Geoapify dashboard.
+  geoapifyKey: '',
+  geoapifyLimit: 80, // places per category per search (every 20 places = 1 credit)
+
   // Free public services (no API keys).
   photon: 'https://photon.komoot.io',
   routing: {

@@ -17,14 +17,14 @@ Live: https://iain-exergenics.github.io/Triangulate/
 - **Share.** The whole plan lives in the URL. "Share with the group" uses native share or copies to the clipboard, and there's a one-tap WhatsApp button.
 - Responsive bottom sheet on phones, dark mode, keyboard navigation and reduced-motion support.
 
-## Stack (all free, no API keys)
+## Stack (all free; one optional free key)
 
 | Need | Service |
 |---|---|
 | Map | MapLibre GL + OpenFreeMap tiles |
 | Address search | Photon (komoot) |
 | Travel times & routes | OSRM on routing.openstreetmap.de (car / bike / foot) |
-| Venues | OpenStreetMap via Overpass API (two mirrors raced) |
+| Venues | Geoapify Places (free key, OpenStreetMap data), falling back to the public Overpass API |
 | Hosting | GitHub Pages from `/docs` |
 
 It's plain HTML/CSS/ES modules with no build step. To run it locally:
@@ -38,6 +38,7 @@ cd docs && python3 -m http.server 8787
 - `gaMeasurementId`: GA4 ID. Turns on events (`find_middle`, `venue_view`, `book_click`, `share_plan`, `advertise_click`) to import as Google Ads conversions.
 - `advertiseEmail`: shows a "Get in touch" button in the venue-owner pitch.
 - `utm`: tags added to outbound booking links.
+- `geoapifyKey`: free Geoapify key (3,000 credits/day, no card) for fast venue search. Create one at myprojects.geoapify.com, then set its **Allowed origins** to `https://iain-exergenics.github.io` so nobody else can spend your quota. Each category search returns up to `geoapifyLimit` places (every 20 places = 1 credit), and results are cached per area. Left blank, the app uses the public Overpass servers.
 
 ## Sponsored venues — `docs/sponsors.json`
 
@@ -67,5 +68,5 @@ cd docs && python3 -m http.server 8787
 
 ## Known limits of the free tier
 
-- Public Overpass servers can take 20–40 s at busy times. The app prefetches as soon as a rough point exists and caches per area and category, but a paid places API would make this instant (see IDEAS.md).
+- Without a Geoapify key, venue search uses public Overpass servers, which can take 20–40 s or fail at busy times.
 - Public transport times aren't available from any keyless service; drive, cycle and walk are.
