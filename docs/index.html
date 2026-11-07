@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Triangulate — meet in the fair middle</title>
+  <meta name="description" content="Find the fairest place to meet your friends — equal distance or equal travel time — then pick a pub, café, dog park or something new nearby and book it." />
+  <meta property="og:title" content="Triangulate — meet in the fair middle" />
+  <meta property="og:description" content="Up to 10 starting points. One fair meeting spot. Great places nearby." />
+  <meta property="og:image" content="assets/logo.png" />
+  <meta name="theme-color" content="#2E74B5" />
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <link href="css/app.css" rel="stylesheet" />
+</head>
+<body>
+  <div id="map" aria-label="Map"></div>
+
+  <aside class="panel" id="panel" aria-label="Plan a meet-up">
+    <button class="grip" id="grip" aria-label="Expand or collapse panel"><span></span></button>
+
+    <header class="brand">
+      <a class="logo" href="./" aria-label="Triangulate home"><img src="assets/mark.svg" alt="" /><span>TRIANGULATE</span></a>
+      <p class="tagline">Meet in the fair middle.</p>
+    </header>
+
+    <div class="scroll" id="scroll">
+      <section class="card" id="step-people">
+        <div class="step-head">
+          <span class="step-num">1</span>
+          <div>
+            <h2>Who's meeting?</h2>
+            <p class="hint">Search an address, use your location, or tap the map. Up to 10 people.</p>
+          </div>
+        </div>
+        <ol class="people" id="people"></ol>
+        <div class="row-actions">
+          <button class="btn ghost" id="add-person" type="button">＋ Add someone</button>
+          <button class="btn link" id="try-example" type="button">Try an example</button>
+        </div>
+      </section>
+
+      <section class="card" id="step-mode">
+        <div class="step-head">
+          <span class="step-num">2</span>
+          <div>
+            <h2>What's fair?</h2>
+          </div>
+        </div>
+        <div class="segmented" role="radiogroup" aria-label="Fairness mode" id="mode">
+          <button role="radio" data-mode="time" aria-checked="true">
+            <strong>Equal travel time</strong><small>Same journey length for everyone</small>
+          </button>
+          <button role="radio" data-mode="distance" aria-checked="false">
+            <strong>Equal distance</strong><small>Same distance as the crow flies</small>
+          </button>
+        </div>
+        <div class="travel" role="radiogroup" aria-label="How people travel" id="travel">
+          <button role="radio" data-travel="car" aria-checked="true">🚗 Drive</button>
+          <button role="radio" data-travel="bike" aria-checked="false">🚲 Cycle</button>
+          <button role="radio" data-travel="foot" aria-checked="false">🚶 Walk</button>
+        </div>
+      </section>
+
+      <section class="card result" id="step-result" hidden>
+        <div class="result-top">
+          <div>
+            <p class="kicker" id="meet-kicker">Your fair middle</p>
+            <h3 id="meet-name">—</h3>
+            <p class="meet-sum" id="meet-sum"></p>
+          </div>
+          <button class="btn small ghost" id="reset-meet" hidden type="button">Reset</button>
+        </div>
+        <ul class="fairness" id="fairness"></ul>
+        <p class="nudge" id="nudge" hidden></p>
+        <div class="row-actions">
+          <button class="btn primary" id="share-plan" type="button">Share with the group</button>
+          <a class="btn ghost" id="whatsapp" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+        <p class="tiny">Drag the ▲ pin to fine-tune — everyone's times update live.</p>
+      </section>
+
+      <section class="card" id="step-venues" hidden>
+        <div class="step-head">
+          <span class="step-num">3</span>
+          <div>
+            <h2>What are you in the mood for?</h2>
+            <p class="hint">Pick as many as you like.</p>
+          </div>
+        </div>
+        <div class="chips" id="cats" role="group" aria-label="Venue types"></div>
+        <label class="radius">
+          <span>Search within <output id="radius-out">600 m</output> of the middle</span>
+          <input type="range" id="radius" min="200" max="3000" step="100" value="600" />
+        </label>
+        <div class="venues" id="venues" aria-live="polite"></div>
+      </section>
+
+      <footer class="foot">
+        <button class="btn link" id="advertise" type="button">Own a venue? Get featured</button>
+        <p>Maps © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · Routing <a href="https://routing.openstreetmap.de" target="_blank" rel="noopener">FOSSGIS OSRM</a> · Search <a href="https://photon.komoot.io" target="_blank" rel="noopener">Photon</a></p>
+      </footer>
+    </div>
+  </aside>
+
+  <div class="status" id="status" role="status" aria-live="polite" hidden></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="book-dialog" class="sheet">
+    <form method="dialog">
+      <p class="kicker" id="book-kicker">Book a table</p>
+      <h3 id="book-name">Venue</h3>
+      <p class="hint" id="book-addr"></p>
+      <div class="grid3">
+        <label>Date<input type="date" id="book-date" required /></label>
+        <label>Time<input type="time" id="book-time" value="19:00" step="900" required /></label>
+        <label>Group<input type="number" id="book-party" min="1" max="40" value="2" required /></label>
+      </div>
+      <p class="tiny" id="book-note"></p>
+      <div class="row-actions">
+        <button class="btn primary" id="book-go" value="go">Continue to booking ↗</button>
+        <a class="btn ghost" id="book-call" hidden>Call</a>
+        <button class="btn link" value="cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="ad-dialog" class="sheet">
+    <form method="dialog">
+      <p class="kicker">For venues</p>
+      <h3>Be the first place groups see</h3>
+      <p>Triangulate shows people the fairest place to meet — then the venues inside that zone. Featured venues are pinned to the top, highlighted on the map and get a direct booking button.</p>
+      <ul class="ticks">
+        <li>Shown only when you're inside a group's meeting zone</li>
+        <li>Pay for groups who see you, not random clicks</li>
+        <li>Promote offers: “10% off for groups of 4+”</li>
+      </ul>
+      <div class="row-actions">
+        <a class="btn primary" id="ad-contact" hidden>Get in touch</a>
+        <button class="btn link" value="close">Close</button>
+      </div>
+      <p class="tiny" id="ad-soon" hidden>Featured spots open soon.</p>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
